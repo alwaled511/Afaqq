@@ -136,7 +136,7 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="relative h-screen overflow-hidden flex flex-col">
+   <div className="relative min-h-screen w-full overflow-x-hidden bg-slate-50">
       {isManagerShadowing && (
         <div className="bg-emerald-950 text-white px-8 py-3 flex items-center justify-between z-[60] shadow-xl animate-fadeIn border-b border-emerald-800">
           <div className="flex items-center gap-4">
