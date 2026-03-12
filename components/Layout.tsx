@@ -11,6 +11,7 @@ interface LayoutProps {
 }
 
 const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab, userRole, setUserRole }) => {
+  const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
   const getMenuItems = () => {
     const base = [{ id: 'dashboard', label: 'الرئيسية', icon: '🏠' }];
     if (userRole === 'manager') {
@@ -43,7 +44,13 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab, user
 
   return (
     <div className="flex h-screen bg-[#FDFDFD] overflow-hidden font-sans">
-      <aside className="w-72 bg-[#0C1E14] text-white flex flex-col shadow-[10px_0_50px_rgba(0,0,0,0.1)] z-30 transition-all">
+      <button 
+        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+        className="md:hidden fixed top-4 right-4 z-[100] p-2 bg-emerald-900 text-white rounded-lg shadow-lg"
+      >
+        {isSidebarOpen ? <X size={24} /> : <Menu size={24} />}
+      </button>
+    <aside className={`fixed inset-y-0 right-0 z-[90] w-72 bg-[#0C1E14] text-white flex flex-col shadow-2xl transform transition-transform duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : 'translate-x-full'} md:relative md:translate-x-0`}>ش
         <div className="p-10 flex flex-col items-center">
           <div className="w-16 h-16 bg-gradient-to-br from-amber-400 to-amber-600 rounded-2xl flex items-center justify-center text-[#0C1E14] font-black text-3xl shadow-2xl mb-4 transform hover:scale-105 transition-transform">آ</div>
           <h1 className="text-2xl font-black tracking-tight quran-font">منصة آفاق</h1>
