@@ -1,6 +1,5 @@
 import React from 'react';
 import { UserRole } from '../types';
-import { Menu, X } from 'lucide-react';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -44,20 +43,20 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab, user
   const menuItems = getMenuItems();
 
   return (
-    <div className="flex h-screen bg-[#FDFDFD] overflow-hidden font-sans">
-      {/* زر القائمة للجوال - يظهر فقط في الشاشات الصغيرة */}
+    <div className="flex h-screen bg-[#FDFDFD] overflow-hidden font-sans" dir="rtl">
+      {/* زر الجوال - تم استبدال الأيقونات بنصوص لضمان البناء السليم */}
       <button
         onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-        className="md:hidden fixed top-4 right-4 z-[100] p-2 bg-emerald-900 text-white rounded-lg shadow-lg"
+        className="md:hidden fixed top-4 right-4 z-[100] p-2 bg-emerald-900 text-white rounded-lg shadow-lg flex items-center justify-center w-10 h-10"
       >
-        {isSidebarOpen ? <X size={24} /> : <Menu size={24} />}
+        <span className="text-xl font-bold">{isSidebarOpen ? '✕' : '☰'}</span>
       </button>
 
-      {/* القائمة الجانبية مع خاصية الانزلاق للجوال */}
+      {/* القائمة الجانبية */}
       <aside className={`fixed inset-y-0 right-0 z-[90] w-72 bg-[#0C1E14] text-white flex flex-col shadow-2xl transform transition-transform duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : 'translate-x-full'} md:relative md:translate-x-0`}>
         <div className="p-10 flex flex-col items-center">
           <div className="w-16 h-16 bg-gradient-to-br from-amber-400 to-amber-600 rounded-2xl flex items-center justify-center text-[#0C1E14] font-black text-3xl mb-4">أ</div>
-          <h1 className="text-2xl font-black quran-font">منصة آفاق</h1>
+          <h1 className="text-2xl font-black">منصة آفاق</h1>
           <div className="mt-2 px-3 py-0.5 bg-emerald-900/50 rounded-full text-[9px] font-bold text-emerald-400 border border-emerald-800/30 uppercase tracking-widest">Smart Quran Hub</div>
         </div>
 
@@ -67,7 +66,7 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab, user
               key={item.id}
               onClick={() => {
                 setActiveTab(item.id);
-                setIsSidebarOpen(false); // إغلاق القائمة تلقائياً بعد الاختيار
+                setIsSidebarOpen(false);
               }}
               className={`w-full flex items-center gap-4 px-5 py-4 rounded-2xl transition-all ${
                 activeTab === item.id 
