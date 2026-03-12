@@ -2,103 +2,149 @@ import React, { useState, useEffect } from 'react';
 
 interface ManagerTeachersProps {
   onEnterTeacherPortal: (name: string) => void;
-  selectedMosque: string; // استلام المسجد المختار من App.tsx
+  selectedMosque: string;
 }
 
 const ManagerTeachers: React.FC<ManagerTeachersProps> = ({ onEnterTeacherPortal, selectedMosque }) => {
   const [teachers, setTeachers] = useState<any[]>([]);
   const [showAddModal, setShowAddModal] = useState(false);
-  const [newTeacher, setNewTeacher] = useState({ name: '', phone: '', email: '', specialty: 'حفظ' });
+  
+  // النموذج الجديد بناءً على طلبك
+  const [newTeacher, setNewTeacher] = useState({ 
+    fullName: '', 
+    phone: '', 
+    teacherType: 'معلم حلقة', 
+    password: '' 
+  });
 
-  // تحميل المعلمين وفلترتهم حسب المسجد
   useEffect(() => {
     const savedTeachers = JSON.parse(localStorage.getItem('afaq_teachers') || '[]');
-    // فلترة: اعرض فقط المعلمين الذين يتبعون المسجد المختار
     const filtered = savedTeachers.filter((t: any) => t.mosqueId === selectedMosque);
     setTeachers(filtered);
-  }, [selectedMosque]); // يتحدث الترتيب فور تغيير المسجد في الشريط العلوي
+  }, [selectedMosque]);
 
   const handleAddTeacher = () => {
-    if (newTeacher.name) {
+    if (newTeacher.fullName && newTeacher.phone) {
       const savedTeachers = JSON.parse(localStorage.getItem('afaq_teachers') || '[]');
       const teacherWithMosque = { 
         ...newTeacher, 
         id: Date.now(), 
-        mosqueId: selectedMosque // ربط المعلم بالمسجد النشط حالياً
+        mosqueId: selectedMosque,
+        name: newTeacher.fullName // نستخدم هذا للعرض في البطاقات
       };
       
       const updatedAll = [...savedTeachers, teacherWithMosque];
       localStorage.setItem('afaq_teachers', JSON.stringify(updatedAll));
       
-      // تحديث القائمة المعروضة فوراً
       setTeachers(updatedAll.filter((t: any) => t.mosqueId === selectedMosque));
       setShowAddModal(false);
-      setNewTeacher({ name: '', phone: '', email: '', specialty: 'حفظ' });
+      setNewTeacher({ fullName: '', phone: '', teacherType: 'معلم حلقة', password: '' });
     }
   };
 
   return (
-    <div className="space-y-6 animate-fadeIn">
-      <div className="flex justify-between items-center">
+    <div className="space-y-6 animate-fadeIn text-right" dir="rtl">
+      <div className="flex justify-between items-center bg-white p-8 rounded-[32px] border border-emerald-50 shadow-sm">
         <div>
-          <h2 className="text-2xl font-black text-emerald-900">إدارة المعلمين</h2>
-          <p className="text-sm text-gray-500">عرض الكادر التعليمي للمسجد المختار</p>
+          <h2 className="text-2xl font-black text-emerald-900">إدارة الكادر التعليمي</h2>
+          <p className="text-sm text-gray-400 mt-1">يمكنك إضافة وتعديل بيانات المعلمين بكل سهولة</p>
         </div>
         <button 
           onClick={() => setShowAddModal(true)}
-          className="bg-emerald-900 text-white px-6 py-3 rounded-2xl font-bold shadow-lg hover:bg-emerald-800 transition-all"
+          className="bg-emerald-900 text-white px-8 py-4 rounded-2xl font-bold shadow-lg hover:bg-emerald-800 transition-all flex items-center gap-2"
         >
-          + إضافة معلم جديد
+          <span className="text-xl">+</span> إضافة معلم جديد
         </button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {teachers.length > 0 ? teachers.map((teacher) => (
-          <div key={teacher.id} className="bg-white p-6 rounded-[32px] shadow-sm border border-emerald-50 hover:shadow-md transition-all">
-            <div className="flex items-center gap-4 mb-4">
-              <div className="w-14 h-14 bg-amber-50 rounded-2xl flex items-center justify-center text-2xl">👨‍🏫</div>
+        {teachers.map((teacher) => (
+          <div key={teacher.id} className="bg-white p-6 rounded-[32px] border border-emerald-50 hover:shadow-xl transition-all group">
+            <div className="flex items-center gap-4 mb-6">
+              <div className="w-16 h-16 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center text-3xl group-hover:bg-emerald-900 group-hover:text-white transition-colors">👨‍🏫</div>
               <div>
-                <h3 className="font-bold text-emerald-900">{teacher.name}</h3>
-                <p className="text-xs text-gray-400">{teacher.specialty}</p>
+                <h3 className="font-black text-emerald-900">{teacher.fullName}</h3>
+                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{teacher.teacherType}</p>
               </div>
             </div>
             <button 
-              onClick={() => onEnterTeacherPortal(teacher.name)}
-              className="w-full py-3 bg-emerald-50 text-emerald-900 rounded-xl text-xs font-black hover:bg-emerald-900 hover:text-white transition-all"
+              onClick={() => onEnterTeacherPortal(teacher.fullName)}
+              className="w-full py-4 bg-emerald-50 text-emerald-900 rounded-2xl text-xs font-black hover:bg-emerald-900 hover:text-white transition-all shadow-sm"
             >
               دخول لملف المعلم
             </button>
           </div>
-        )) : (
-          <div className="col-span-full py-20 text-center bg-white rounded-[40px] border-2 border-dashed border-emerald-100">
-            <p className="text-gray-400 font-bold text-lg">لا يوجد معلمون مضافون لهذا المسجد بعد</p>
-          </div>
-        )}
+        ))}
       </div>
 
-      {/* نافذة إضافة معلم */}
+      {/* نافذة الإضافة المطورّة - تشبه لقطة الشاشة التي أرفقتها */}
       {showAddModal && (
-        <div className="fixed inset-0 bg-emerald-950/20 backdrop-blur-md z-[100] flex items-center justify-center p-4">
-          <div className="bg-white w-full max-w-md rounded-[40px] p-8 shadow-2xl">
-            <h3 className="text-xl font-black text-emerald-900 mb-6 text-center">إضافة معلم للمسجد</h3>
-            <div className="space-y-4">
-              <input 
-                placeholder="اسم المعلم"
-                className="w-full px-5 py-4 rounded-2xl bg-gray-50 border-none focus:ring-2 focus:ring-emerald-500"
-                value={newTeacher.name}
-                onChange={e => setNewTeacher({...newTeacher, name: e.target.value})}
-              />
+        <div className="fixed inset-0 bg-emerald-950/40 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+          <div className="bg-[#FDFDFD] w-full max-w-2xl rounded-[40px] p-10 shadow-2xl overflow-y-auto max-h-[90vh]">
+            <div className="mb-8 border-b border-gray-100 pb-6">
+              <h3 className="text-2xl font-black text-emerald-900">إضافة معلم جديد</h3>
+              <p className="text-gray-400 text-sm mt-1">البيانات الشخصية والمهنية</p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-gray-500 mr-2">الاسم الكامل</label>
+                <input 
+                  className="w-full px-6 py-4 rounded-2xl bg-gray-50 border-none focus:ring-2 focus:ring-emerald-500 text-right"
+                  value={newTeacher.fullName}
+                  onChange={e => setNewTeacher({...newTeacher, fullName: e.target.value})}
+                  placeholder="مثال: محمد بن خالد السلمان"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-gray-500 mr-2">رقم الجوال</label>
+                <input 
+                  className="w-full px-6 py-4 rounded-2xl bg-gray-50 border-none focus:ring-2 focus:ring-emerald-500 text-left"
+                  dir="ltr"
+                  value={newTeacher.phone}
+                  onChange={e => setNewTeacher({...newTeacher, phone: e.target.value})}
+                  placeholder="05x xxxx xxx"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-gray-500 mr-2">نوع المعلم</label>
+                <select 
+                  className="w-full px-6 py-4 rounded-2xl bg-gray-50 border-none focus:ring-2 focus:ring-emerald-500"
+                  value={newTeacher.teacherType}
+                  onChange={e => setNewTeacher({...newTeacher, teacherType: e.target.value})}
+                >
+                  <option>معلم حلقة</option>
+                  <option>مشرف مسار</option>
+                  <option>مصحح تلاوة</option>
+                </select>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-gray-500 mr-2">كلمة المرور</label>
+                <input 
+                  type="password"
+                  className="w-full px-6 py-4 rounded-2xl bg-gray-50 border-none focus:ring-2 focus:ring-emerald-500 text-right"
+                  value={newTeacher.password}
+                  onChange={e => setNewTeacher({...newTeacher, password: e.target.value})}
+                  placeholder="••••••••"
+                />
+              </div>
+            </div>
+
+            <div className="mt-10 flex flex-col gap-3">
               <button 
                 onClick={handleAddTeacher}
-                className="w-full py-4 bg-emerald-900 text-white rounded-2xl font-black shadow-lg"
+                className="w-full py-5 bg-emerald-900 text-white rounded-2xl font-black shadow-xl hover:bg-emerald-800 transition-all"
               >
-                تأكيد الإضافة
+                تأكيد إضافة المعلم
               </button>
               <button 
                 onClick={() => setShowAddModal(false)}
-                className="w-full py-4 text-gray-400 font-bold"
+                className="w-full py-4 text-gray-400 font-bold hover:text-red-500 transition-colors"
               >
-                إلغاء
+                إلغاء العملية
               </button>
             </div>
           </div>
