@@ -9,8 +9,22 @@ interface LayoutProps {
   setUserRole: (role: UserRole) => void;
 }
 
+const mosques = [
+  { id: 'm1', name: 'مسجد خالد السلمان' },
+  { id: 'm2', name: 'جامع العنيزان' },
+  { id: 'm3', name: 'جامع المديهش' },
+  { id: 'm4', name: 'جامع جليبيب' },
+  { id: 'm5', name: 'جامع القفاري' },
+  { id: 'm6', name: 'مسجد بن سويلم' },
+  { id: 'm7', name: 'مسجد الجويعد' },
+  { id: 'm8', name: 'مسجد الغيامة' },
+  { id: 'm9', name: 'جامع العيسى' },
+  { id: 'm10', name: 'جامع الجريوي' },
+];
+
 const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab, userRole, setUserRole }) => {
   const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
+  const [selectedMosque, setSelectedMosque] = React.useState(mosques[0].id);
 
   const getMenuItems = () => {
     const base = [{ id: 'dashboard', label: 'الرئيسية', icon: '🏠' }];
@@ -44,7 +58,7 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab, user
 
   return (
     <div className="flex h-screen bg-[#FDFDFD] overflow-hidden font-sans" dir="rtl">
-      {/* زر الجوال - تم استبدال الأيقونات بنصوص لضمان البناء السليم */}
+      {/* زر الجوال */}
       <button
         onClick={() => setIsSidebarOpen(!isSidebarOpen)}
         className="md:hidden fixed top-4 right-4 z-[100] p-2 bg-emerald-900 text-white rounded-lg shadow-lg flex items-center justify-center w-10 h-10"
@@ -91,9 +105,32 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab, user
         </div>
       </aside>
 
-      <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
-        <section className="flex-1 overflow-y-auto p-4 md:p-12 bg-[#F8FAFB]">
-          <div className="max-w-7xl mx-auto h-full relative">
+      {/* منطقة المحتوى الرئيسي */}
+      <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative bg-[#F8FAFB]">
+        {/* شريط المساجد (يظهر فقط للمدير) */}
+        {userRole === 'manager' && (
+          <header className="bg-white border-b border-gray-200 z-50">
+            <div className="flex items-center p-4 gap-4 overflow-x-auto scrollbar-hide">
+              <span className="text-xs font-bold text-gray-400 whitespace-nowrap bg-gray-50 px-3 py-2 rounded-lg">المساجد:</span>
+              {mosques.map((mosque) => (
+                <button
+                  key={mosque.id}
+                  onClick={() => setSelectedMosque(mosque.id)}
+                  className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all duration-300 ${
+                    selectedMosque === mosque.id
+                      ? 'bg-emerald-900 text-white shadow-md scale-105'
+                      : 'bg-white text-emerald-900 border border-emerald-100 hover:bg-emerald-50'
+                  }`}
+                >
+                  🕌 {mosque.name}
+                </button>
+              ))}
+            </div>
+          </header>
+        )}
+
+        <section className="flex-1 overflow-y-auto p-4 md:p-8">
+          <div className="max-w-7xl mx-auto">
             {children}
           </div>
         </section>
