@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import Layout from './components/Layout';
 import LandingPage from './components/LandingPage';
@@ -17,7 +16,6 @@ import StudentBarcode from './components/StudentBarcode';
 import AIConsultant from './components/AIConsultant';
 import { UserRole } from './types';
 
-// تم تفريغ المصفوفات لتبدأ المنصة ببيانات المستخدم الخاصة
 const INITIAL_TEACHERS: any[] = [];
 const INITIAL_CIRCLES: any[] = [];
 const INITIAL_STUDENTS: any[] = [];
@@ -27,9 +25,11 @@ const App: React.FC = () => {
   const [userRole, setUserRole] = useState<UserRole | null>(null);
   const [isManagerShadowing, setIsManagerShadowing] = useState(false);
   const [shadowTeacherName, setShadowTeacherName] = useState('');
+  
+  // أضفنا هذه الحالة لتخزين المسجد المختار حالياً
+  const [selectedMosque, setSelectedMosque] = useState('m1'); 
 
   useEffect(() => {
-    // تهيئة المخزن المحلي إذا كان فارغاً
     if (!localStorage.getItem('afaq_teachers')) {
       localStorage.setItem('afaq_teachers', JSON.stringify(INITIAL_TEACHERS));
     }
@@ -76,17 +76,20 @@ const App: React.FC = () => {
     switch (activeTab) {
       case 'dashboard': return <ManagerDashboard />;
       case 'teachers': 
-        return <ManagerTeachers onEnterTeacherPortal={enterTeacherPortalAsManager} />;
-      case 'circles': return <ManagerCircles />;
-      case 'students_all': return <ManagerStudents />;
-      case 'reports': return <ManagerReports />;
+        // نمرر id المسجد لصفحة المعلمين لفلترتهم
+        return <ManagerTeachers onEnterTeacherPortal={enterTeacherPortalAsManager} selectedMosque={selectedMosque} />;
+      case 'circles': 
+        return <ManagerCircles selectedMosque={selectedMosque} />;
+      case 'students_all': 
+        return <ManagerStudents selectedMosque={selectedMosque} />;
+      case 'reports': 
+        return <ManagerReports selectedMosque={selectedMosque} />;
       default: return <ManagerDashboard />;
     }
   };
 
   const renderTeacherContent = () => {
     const currentTeacherName = isManagerShadowing ? shadowTeacherName : 'المعلم';
-
     switch (activeTab) {
       case 'dashboard': return <TeacherDashboard teacherName={currentTeacherName} />;
       case 'my_students': return <TeacherStudents teacherName={currentTeacherName} />;
@@ -136,7 +139,7 @@ const App: React.FC = () => {
   };
 
   return (
-   <div className="relative min-h-screen w-full overflow-x-hidden bg-slate-50">
+    <div className="relative min-h-screen w-full overflow-x-hidden bg-slate-50">
       {isManagerShadowing && (
         <div className="bg-emerald-950 text-white px-8 py-3 flex items-center justify-between z-[60] shadow-xl animate-fadeIn border-b border-emerald-800">
           <div className="flex items-center gap-4">
@@ -153,11 +156,14 @@ const App: React.FC = () => {
       )}
 
       <div className="flex-1 overflow-hidden">
+        {/* مررنا هنا selectedMosque و setSelectedMosque للـ Layout ليعمل التبديل */}
         <Layout 
           activeTab={activeTab} 
           setActiveTab={setActiveTab} 
           userRole={userRole} 
           setUserRole={setUserRole}
+          selectedMosque={selectedMosque}
+          setSelectedMosque={setSelectedMosque}
         >
           <div className="relative h-full">
             <button 
