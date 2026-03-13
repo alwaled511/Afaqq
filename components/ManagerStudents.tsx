@@ -20,10 +20,8 @@ const ManagerDashboard = ({ selectedMosque }: { selectedMosque: string }) => {
   };
 
   const [newStudent, setNewStudent] = useState(studentInitial);
-  
-  // السطر 22: الحالة الجديدة للمعلم
-  const [newTeacher, setNewTeacher] = useState({ circleName: '', teacherName: '', username: '', password: '', phone: '' });
- 
+  const [newTeacher, setNewTeacher] = useState({ name: '', username: '', password: '', phone: '' });
+
   useEffect(() => {
     const allStudents = JSON.parse(localStorage.getItem('afaq_students') || '[]');
     const allTeachers = JSON.parse(localStorage.getItem('afaq_teachers') || '[]');
@@ -44,8 +42,7 @@ const ManagerDashboard = ({ selectedMosque }: { selectedMosque: string }) => {
     setTeachers(updated.filter((t: any) => t.mosqueId === selectedMosque));
     setShowTeacherModal(false);
     setEditingId(null);
-    // التعديل 1: تصفير الحقول الجديدة
-    setNewTeacher({ circleName: '', teacherName: '', username: '', password: '', phone: '' });
+    setNewTeacher({ name: '', username: '', password: '', phone: '' });
   };
 
   const handleDeleteTeacher = (id: number) => {
@@ -60,6 +57,7 @@ const ManagerDashboard = ({ selectedMosque }: { selectedMosque: string }) => {
   return (
     <div className="w-full min-h-screen bg-gray-50 p-6 font-sans" dir="rtl">
       
+      {/* التبديل بين الأقسام */}
       <div className="flex gap-4 mb-8 bg-white p-2 rounded-2xl shadow-sm max-w-fit mx-auto border border-emerald-50">
         <button onClick={() => setActiveTab('students')} className={`px-10 py-3 rounded-xl font-black transition-all ${activeTab === 'students' ? 'bg-emerald-900 text-white shadow-lg' : 'text-gray-400'}`}>شؤون الطلاب</button>
         <button onClick={() => setActiveTab('teachers')} className={`px-10 py-3 rounded-xl font-black transition-all ${activeTab === 'teachers' ? 'bg-emerald-900 text-white shadow-lg' : 'text-gray-400'}`}>إدارة الحلقات</button>
@@ -69,16 +67,15 @@ const ManagerDashboard = ({ selectedMosque }: { selectedMosque: string }) => {
         <div className="space-y-6 animate-in fade-in">
           <div className="flex justify-between items-center bg-white p-6 rounded-[2rem] shadow-sm border border-emerald-50">
             <h2 className="text-xl font-black text-emerald-900">سجل المعلمين والحلقات</h2>
-            <button onClick={() => { setEditingId(null); setNewTeacher({circleName:'', teacherName:'', username:'', password:'', phone:''}); setShowTeacherModal(true); }} className="bg-emerald-700 text-white px-8 py-3 rounded-2xl font-bold shadow-md hover:bg-emerald-800 transition-all">إضافة معلم جديد +</button>
+            <button onClick={() => { setEditingId(null); setNewTeacher({name:'', username:'', password:'', phone:''}); setShowTeacherModal(true); }} className="bg-emerald-700 text-white px-8 py-3 rounded-2xl font-bold shadow-md hover:bg-emerald-800 transition-all">إضافة معلم جديد +</button>
           </div>
 
+          {/* جدول المعلمين لضمان ظهور أزرار الحذف */}
           <div className="bg-white rounded-[2rem] shadow-sm border border-emerald-50 overflow-hidden">
             <table className="w-full text-right">
               <thead>
                 <tr className="bg-emerald-50 text-emerald-900 font-black text-sm">
-                  {/* التعديل 2: تحديث عناوين الجدول */}
-                  <th className="p-5">اسم الحلقة</th>
-                  <th className="p-5">اسم المعلم</th>
+                  <th className="p-5">اسم المعلم / الحلقة</th>
                   <th className="p-5">اسم المستخدم</th>
                   <th className="p-5 text-center">إجراءات</th>
                 </tr>
@@ -86,9 +83,7 @@ const ManagerDashboard = ({ selectedMosque }: { selectedMosque: string }) => {
               <tbody className="divide-y divide-emerald-50">
                 {teachers.map((t) => (
                   <tr key={t.id} className="hover:bg-gray-50 transition-colors">
-                    {/* التعديل 2 (تابع): عرض البيانات الجديدة */}
-                    <td className="p-5 font-bold text-emerald-950">{t.circleName}</td>
-                    <td className="p-5 font-bold text-gray-700">{t.teacherName}</td>
+                    <td className="p-5 font-bold text-emerald-950">{t.name}</td>
                     <td className="p-5 font-mono text-xs text-gray-500">{t.username}</td>
                     <td className="p-5 flex justify-center gap-3">
                       <button onClick={() => { setNewTeacher(t); setEditingId(t.id); setShowTeacherModal(true); }} className="bg-blue-100 text-blue-700 px-4 py-2 rounded-xl text-xs font-black hover:bg-blue-200 transition-all">تعديل</button>
@@ -97,13 +92,14 @@ const ManagerDashboard = ({ selectedMosque }: { selectedMosque: string }) => {
                   </tr>
                 ))}
                 {teachers.length === 0 && (
-                  <tr><td colSpan={4} className="p-10 text-center text-gray-400 font-bold">لا يوجد معلمون مضافون حالياً</td></tr>
+                  <tr><td colSpan={3} className="p-10 text-center text-gray-400 font-bold">لا يوجد معلمون مضافون حالياً</td></tr>
                 )}
               </tbody>
             </table>
           </div>
         </div>
       ) : (
+        /* قسم شؤون الطلاب (نفس تصميمك المعتمد) */
         <div className="space-y-6 animate-in fade-in">
            <div className="flex justify-between items-center bg-white p-6 rounded-[2rem] shadow-sm border border-emerald-50">
             <h2 className="text-xl font-black text-emerald-900">سجل الطلاب</h2>
@@ -113,11 +109,12 @@ const ManagerDashboard = ({ selectedMosque }: { selectedMosque: string }) => {
             {students.map(s => (
               <div key={s.id} className="bg-white p-6 rounded-[2rem] border border-emerald-50 shadow-sm flex justify-between items-center">
                 <div>
-                  <h4 className="font-black text-emerald-900">{s.tripleName}</h4>
+                  <h4 className="font-black text-emerald-900">{s.fullName}</h4>
                   <p className="text-xs text-emerald-600 font-bold">الحلقة: {s.circle}</p>
                 </div>
                 <div className="flex gap-2">
-                  <button onClick={() => { setNewStudent({...s, tripleName: s.fullName || s.tripleName}); setEditingId(s.id); setShowStudentModal(true); }} className="p-2 bg-blue-50 text-blue-600 rounded-xl font-bold text-xs">تعديل</button>
+                  <button onClick={() => { setNewStudent({...s, tripleName: s.fullName}); setEditingId(s.id); setShowStudentModal(true); }} className="p-2 bg-blue-50 text-blue-600 rounded-xl font-bold text-xs">تعديل</button>
+                  <button onClick={() => { if(window.confirm("حذف الطالب؟")) { /* كود الحذف */ } }} className="p-2 bg-red-50 text-red-600 rounded-xl font-bold text-xs">حذف</button>
                 </div>
               </div>
             ))}
@@ -125,14 +122,13 @@ const ManagerDashboard = ({ selectedMosque }: { selectedMosque: string }) => {
         </div>
       )}
 
-      {/* التعديل 3: مودال المعلم بالحقلين الجديدين */}
+      {/* مودال المعلم (بيانات الدخول كما في صورتك) */}
       {showTeacherModal && (
         <div className="fixed inset-0 z-[3000] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="w-full max-w-md bg-white rounded-[2.5rem] p-8 space-y-6 shadow-2xl relative">
             <h3 className="text-xl font-black text-emerald-900 text-center border-b pb-4">بيانات دخول المعلم</h3>
             <div className="space-y-4">
-              <input className="w-full p-4 rounded-2xl bg-gray-50 font-bold border outline-none focus:border-emerald-500" placeholder="اسم الحلقة" value={newTeacher.circleName} onChange={e => setNewTeacher({...newTeacher, circleName: e.target.value})} />
-              <input className="w-full p-4 rounded-2xl bg-gray-50 font-bold border outline-none focus:border-emerald-500" placeholder="اسم المعلم" value={newTeacher.teacherName} onChange={e => setNewTeacher({...newTeacher, teacherName: e.target.value})} />
+              <input className="w-full p-4 rounded-2xl bg-gray-50 font-bold border outline-none focus:border-emerald-500 transition-all" placeholder="اسم المعلم الثلاثي" value={newTeacher.name} onChange={e => setNewTeacher({...newTeacher, name: e.target.value})} />
               <div className="grid grid-cols-2 gap-4">
                 <input className="p-4 rounded-2xl bg-emerald-50/50 font-bold border border-emerald-100 outline-none" placeholder="اسم المستخدم" value={newTeacher.username} onChange={e => setNewTeacher({...newTeacher, username: e.target.value})} />
                 <input className="p-4 rounded-2xl bg-emerald-50/50 font-bold border border-emerald-100 outline-none" type="password" placeholder="كلمة المرور" value={newTeacher.password} onChange={e => setNewTeacher({...newTeacher, password: e.target.value})} />
@@ -147,31 +143,54 @@ const ManagerDashboard = ({ selectedMosque }: { selectedMosque: string }) => {
         </div>
       )}
 
+      {/* مودال الطالب (المعلومات الشخصية + الخطة الملونة) */}
       {showStudentModal && (
         <div className="fixed inset-0 z-[3000] bg-black/60 flex items-center justify-center p-4 overflow-y-auto backdrop-blur-sm">
           <div className="w-full max-w-5xl bg-white rounded-[3rem] p-8 space-y-8 my-8 shadow-2xl">
-            <h3 className="text-2xl font-black text-emerald-900 border-b pb-4">تسجيل الطالب</h3>
+            <h3 className="text-2xl font-black text-emerald-900 border-b pb-4">تسجيل الطالب والخطة الدراسية</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
               <div className="space-y-4">
                 <h4 className="font-black text-emerald-800 border-r-4 border-emerald-500 pr-2">بيانات الطالب</h4>
                 <input className="w-full p-4 rounded-2xl bg-gray-50 font-bold border outline-none" placeholder="الاسم الثلاثي" value={newStudent.tripleName} onChange={e => setNewStudent({...newStudent, tripleName: e.target.value})} />
-                
-                {/* التعديل 4: ربط قائمة اختيار الحلقة بالبيانات الجديدة */}
                 <select className="w-full p-4 rounded-2xl bg-gray-50 font-bold border outline-none" value={newStudent.circle} onChange={e => setNewStudent({...newStudent, circle: e.target.value})}>
                   <option value="">اختر الحلقة...</option>
-                  {teachers.map(t => <option key={t.id} value={t.circleName}>{t.circleName}</option>)}
+                  {teachers.map(t => <option key={t.id} value={t.name}>{t.name}</option>)}
                 </select>
-
                 <div className="grid grid-cols-3 gap-2">
                   <input className="p-3 rounded-xl bg-gray-50 font-bold text-xs border" placeholder="المرحلة" value={newStudent.studyLevel} onChange={e => setNewStudent({...newStudent, studyLevel: e.target.value})} />
                   <input className="p-3 rounded-xl bg-gray-50 font-bold text-xs border" placeholder="جوال الطالب" value={newStudent.studentPhone} onChange={e => setNewStudent({...newStudent, studentPhone: e.target.value})} />
                   <input className="p-3 rounded-xl bg-gray-50 font-bold text-xs border" placeholder="جوال ولي الأمر" value={newStudent.parentPhone} onChange={e => setNewStudent({...newStudent, parentPhone: e.target.value})} />
                 </div>
               </div>
-              {/* باقي كود المودال ... */}
+              <div className="space-y-4">
+                <h4 className="font-black text-emerald-800 border-r-4 border-emerald-500 pr-2">خطة الحفظ والهدف</h4>
+                <div className="bg-emerald-50/50 p-6 rounded-[2.5rem] border border-emerald-100 space-y-4 shadow-inner">
+                  <div className="flex justify-between font-black text-emerald-900 text-sm"><span>تفعيل الحفظ</span><input type="checkbox" checked={newStudent.hifzEnabled} /></div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <select className="p-3 rounded-xl bg-white font-bold border text-sm" value={newStudent.hifzFromSurah}>{quranSurahs.map(s => <option key={s} value={s}>{s}</option>)}</select>
+                    <input type="number" className="p-3 rounded-xl bg-white font-bold border-2 border-red-200" placeholder="آية" value={newStudent.hifzVerse} onChange={e => setNewStudent({...newStudent, hifzVerse: e.target.value})} />
+                    <input type="number" className="p-3 rounded-xl bg-white font-bold border-2 border-blue-200" placeholder="أسطر" value={newStudent.hifzLinesTarget} onChange={e => setNewStudent({...newStudent, hifzLinesTarget: e.target.value})} />
+                    <select className="p-3 rounded-xl bg-white font-bold border text-sm" value={newStudent.hifzDirection}><option>تصاعدي</option><option>تنازلي</option></select>
+                  </div>
+                </div>
+                {/* التثبيت والمراجعة */}
+                <div className="grid grid-cols-2 gap-3">
+                   <div className="bg-blue-50/30 p-4 rounded-2xl border border-blue-100 space-y-2 text-center">
+                    <span className="font-black text-blue-900 text-[10px]">التثبيت</span>
+                    <select className="w-full p-1 rounded-lg text-[10px] bg-white border" value={newStudent.tathbitStartSurah}>{quranSurahs.map(s => <option key={s} value={s}>{s}</option>)}</select>
+                    <div className="flex gap-1"><input className="w-1/2 p-1 rounded bg-white border text-[10px]" placeholder="آية" value={newStudent.tathbitVerse} /><input className="w-1/2 p-1 rounded bg-white border text-[10px]" placeholder="سطر" value={newStudent.tathbitLines} /></div>
+                  </div>
+                  <div className="bg-amber-50/30 p-4 rounded-2xl border border-amber-100 space-y-2 text-center">
+                    <span className="font-black text-amber-900 text-[10px]">المراجعة</span>
+                    <select className="w-full p-1 rounded-lg text-[10px] bg-white border" value={newStudent.murajaahFromSurah}>{quranSurahs.map(s => <option key={s} value={s}>{s}</option>)}</select>
+                    <div className="flex gap-1"><input className="w-1/2 p-1 rounded bg-white border text-[10px]" placeholder="آية" value={newStudent.murajaahVerse} /><input className="w-1/2 p-1 rounded bg-white border text-[10px]" placeholder="سطر" value={newStudent.murajaahLinesTarget} /></div>
+                  </div>
+                </div>
+              </div>
             </div>
             <div className="flex gap-4 pt-4">
-              <button onClick={() => setShowStudentModal(false)} className="flex-1 py-5 bg-emerald-900 text-white rounded-[2rem] font-black text-xl shadow-xl">رجوع</button>
+              <button onClick={() => { /* حفظ الطالب */ }} className="flex-1 py-5 bg-emerald-900 text-white rounded-[2rem] font-black text-xl shadow-xl">حفظ الطالب</button>
+              <button onClick={() => setShowStudentModal(false)} className="px-10 py-5 bg-gray-100 text-gray-400 rounded-[2rem] font-black">إغاء</button>
             </div>
           </div>
         </div>
