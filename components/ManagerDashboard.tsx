@@ -1,109 +1,60 @@
-
 import React, { useState, useEffect } from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
-const statsData = [
-  { name: 'يناير', students: 40, achievements: 20 },
-  { name: 'فبراير', students: 50, achievements: 31 },
-  { name: 'مارس', students: 60, achievements: 45 },
-  { name: 'أبريل', students: 85, achievements: 58 },
-];
+interface ManagerDashboardProps {
+  selectedMosque: string;
+}
 
-const ManagerDashboard: React.FC = () => {
-  const [counts, setCounts] = useState({
-    students: 0,
-    teachers: 0,
-    circles: 0
-  });
-  const [featuredTeachers, setFeaturedTeachers] = useState<any[]>([]);
+const ManagerDashboard: React.FC<ManagerDashboardProps> = ({ selectedMosque }) => {
+  const [stats, setStats] = useState({ teachers: 0, students: 0, circles: 0 });
+  const [mosqueName, setMosqueName] = useState('');
+
+  const mosques = [
+    { id: 'm1', name: 'مسجد خالد السلمان' },
+    { id: 'm2', name: 'جامع العنيزان' },
+    { id: 'm3', name: 'جامع المديهش' },
+    { id: 'm4', name: 'جامع جليبيب' },
+    { id: 'm5', name: 'جامع القفاري' },
+    { id: 'm6', name: 'مسجد بن سويلم' },
+    { id: 'm7', name: 'مسجد الجويعد' },
+    { id: 'm8', name: 'مسجد الغيامة' },
+    { id: 'm9', name: 'جامع العيسى' },
+    { id: 'm10', name: 'جامع الجريوي' },
+  ];
 
   useEffect(() => {
-    const updateStats = () => {
-      const students = JSON.parse(localStorage.getItem('afaq_students') || '[]');
-      const teachers = JSON.parse(localStorage.getItem('afaq_teachers') || '[]');
-      const circles = JSON.parse(localStorage.getItem('afaq_circles') || '[]');
-      
-      setCounts({
-        students: students.length,
-        teachers: teachers.length,
-        circles: circles.length
-      });
-
-      // عرض أول 3 معلمين كمعلمين متميزين
-      setFeaturedTeachers(teachers.slice(0, 3).map((t: any) => ({
-        ...t,
-        rating: 5.0, // تقييم افتراضي
-        students: students.filter((s: any) => {
-          const circle = circles.find((c: any) => c.name === s.circle);
-          return circle && circle.teacher === t.name;
-        }).length
-      })));
-    };
-
-    updateStats();
-    window.addEventListener('storage', updateStats);
-    return () => window.removeEventListener('storage', updateStats);
-  }, []);
+    // تصفية البيانات بناءً على المسجد المختار فقط
+    const teachers = JSON.parse(localStorage.getItem('afaq_teachers') || '[]').filter((t: any) => t.mosqueId === selectedMosque);
+    const students = JSON.parse(localStorage.getItem('afaq_students') || '[]').filter((s: any) => s.mosqueId === selectedMosque);
+    const circles = JSON.parse(localStorage.getItem('afaq_circles') || '[]').filter((c: any) => c.mosqueId === selectedMosque);
+    
+    setStats({ teachers: teachers.length, students: students.length, circles: circles.length });
+    setMosqueName(mosques.find(m => m.id === selectedMosque)?.name || '');
+  }, [selectedMosque]);
 
   return (
-    <div className="space-y-8 animate-fadeIn text-right">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {[
-          { label: 'إجمالي الطلاب', value: counts.students.toLocaleString(), color: 'emerald', icon: '🎓' },
-          { label: 'المعلمون النشطون', value: counts.teachers.toLocaleString(), color: 'blue', icon: '👨‍🏫' },
-          { label: 'الحلقات الحالية', value: counts.circles.toLocaleString(), color: 'amber', icon: '🕌' },
-        ].map((item, i) => (
-          <div key={i} className="bg-white p-8 rounded-[40px] shadow-sm border border-slate-100 group hover:shadow-md transition-all">
-            <div className="flex items-center justify-between mb-4">
-              <span className={`p-5 rounded-[20px] text-2xl group-hover:rotate-12 transition-transform shadow-inner ${item.color === 'emerald' ? 'bg-emerald-50 text-emerald-600' : item.color === 'blue' ? 'bg-blue-50 text-blue-600' : 'bg-amber-50 text-amber-600'}`}>{item.icon}</span>
-            </div>
-            <h3 className="text-4xl font-black text-slate-800">{item.value}</h3>
-            <p className="text-sm text-slate-400 mt-1 font-black uppercase tracking-widest">{item.label}</p>
-          </div>
-        ))}
+    <div className="space-y-8 animate-fadeIn text-right" dir="rtl">
+      <div className="bg-[#0C1E14] p-8 md:p-12 rounded-[40px] shadow-2xl text-white relative overflow-hidden border border-emerald-800/50">
+        <div className="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/arabesque.png')] opacity-10"></div>
+        <div className="relative z-10">
+          <h2 className="text-3xl font-black mb-4">نظرة عامة على {mosqueName}</h2>
+          <p className="text-emerald-400 font-bold max-w-xl text-sm leading-relaxed">
+            مرحباً بك في لوحة تحكم الإدارة. الأرقام أدناه تمثل إحصائيات المسجد الحالي المختار من القائمة العلوية.
+          </p>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className="bg-white p-8 rounded-[40px] shadow-sm border border-slate-100">
-          <div className="flex items-center justify-between mb-8">
-            <h3 className="text-lg font-black text-slate-800">نمو المنصة الأكاديمي</h3>
-            <span className="text-[10px] bg-slate-100 text-slate-500 px-3 py-1 rounded-full font-black">تحديث مباشر</span>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {[
+          { label: 'إجمالي المعلمين', value: stats.teachers, icon: '👨‍🏫', color: 'bg-emerald-50 text-emerald-900 border-emerald-100' },
+          { label: 'الطلاب المسجلين', value: stats.students, icon: '👥', color: 'bg-amber-50 text-amber-900 border-amber-100' },
+          { label: 'الحلقات القائمة', value: stats.circles, icon: '🕌', color: 'bg-blue-50 text-blue-900 border-blue-100' },
+        ].map((item, i) => (
+          <div key={i} className={`p-8 rounded-[32px] border shadow-sm flex flex-col items-center hover:scale-105 transition-transform duration-300 ${item.color}`}>
+            <div className="text-5xl mb-4">{item.icon}</div>
+            <div className="text-4xl font-black mb-1">{item.value}</div>
+            <div className="text-xs font-black uppercase tracking-widest opacity-60">{item.label}</div>
           </div>
-          <div className="w-full min-h-[320px]">
-            <ResponsiveContainer width="100%" height="100%" aspect={1.8}>
-              <LineChart data={statsData}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 11}} />
-                <YAxis axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 11}} />
-                <Tooltip contentStyle={{borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', direction: 'rtl'}} />
-                <Line type="monotone" dataKey="students" stroke="#10b981" strokeWidth={4} dot={{r: 4, fill: '#10b981'}} />
-                <Line type="monotone" dataKey="achievements" stroke="#f59e0b" strokeWidth={4} dot={{r: 4, fill: '#f59e0b'}} />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-        <div className="bg-white p-8 rounded-[40px] shadow-sm border border-slate-100">
-          <h3 className="text-lg font-black text-slate-800 mb-6 quran-font">الكادر التعليمي المتميز</h3>
-          <div className="space-y-5">
-            {featuredTeachers.length > 0 ? featuredTeachers.map((teacher, i) => (
-              <div key={i} className="flex items-center gap-4 p-4 hover:bg-slate-50 rounded-2xl transition-colors border border-transparent hover:border-slate-100 group">
-                <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center font-black text-xl group-hover:scale-110 transition-transform">{teacher.name.charAt(0)}</div>
-                <div className="flex-1">
-                  <h4 className="font-black text-slate-800 text-sm">{teacher.name}</h4>
-                  <p className="text-xs text-slate-500 font-bold">{teacher.specialty} • {teacher.students} طالب</p>
-                </div>
-                <div className="flex items-center gap-1 text-amber-500">
-                  <span className="text-sm font-black">★</span>
-                  <span className="text-sm font-black">{teacher.rating}</span>
-                </div>
-              </div>
-            )) : (
-              <div className="py-12 text-center text-slate-400 font-bold">يرجى إضافة معلمين لعرض الإحصائيات</div>
-            )}
-          </div>
-          <button className="w-full mt-8 py-4 text-emerald-600 text-[11px] font-black hover:bg-emerald-50 rounded-2xl border border-dashed border-emerald-100 transition-all">تحليل التقارير الأكاديمية</button>
-        </div>
+        ))}
       </div>
     </div>
   );
