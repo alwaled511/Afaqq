@@ -1,156 +1,113 @@
 import React, { useState, useEffect } from 'react';
 
-interface ManagerStudentsProps {
+interface ManagerCirclesProps {
   selectedMosque: string;
 }
 
-const ManagerStudents: React.FC<ManagerStudentsProps> = ({ selectedMosque }) => {
-  const [students, setStudents] = useState<any[]>([]);
+const ManagerCircles: React.FC<ManagerCirclesProps> = ({ selectedMosque }) => {
+  const [circles, setCircles] = useState<any[]>([]);
   const [showAddModal, setShowAddModal] = useState(false);
-  
-  // نموذج الطالب الشامل كما في الصورة
-  const [newStudent, setNewStudent] = useState({ 
-    firstName: '', fatherName: '', grandFatherName: '', familyName: '',
-    circle: 'حلقة البراعم', studyLevel: 'ابتدائي',
-    studentPhone: '', parentPhone: '',
-    startSurah: 'الناس', direction: 'الناس إلى الفاتحة', target: '1 وجه'
-  });
+  const [newCircle, setNewCircle] = useState({ name: '', type: 'تلقين وحفظ', teacherName: '' });
 
   useEffect(() => {
-    const allStudents = JSON.parse(localStorage.getItem('afaq_students') || '[]');
-    setStudents(allStudents.filter((s: any) => s.mosqueId === selectedMosque));
+    const allCircles = JSON.parse(localStorage.getItem('afaq_circles') || '[]');
+    setCircles(allCircles.filter((c: any) => c.mosqueId === selectedMosque));
   }, [selectedMosque]);
 
-  const handleAddStudent = () => {
-    if (newStudent.firstName && newStudent.familyName) {
-      const fullName = `${newStudent.firstName} ${newStudent.fatherName} ${newStudent.grandFatherName} ${newStudent.familyName}`.trim();
-      const allStudents = JSON.parse(localStorage.getItem('afaq_students') || '[]');
+  const handleAddCircle = () => {
+    if (newCircle.name) {
+      const allCircles = JSON.parse(localStorage.getItem('afaq_circles') || '[]');
+      const circleData = { ...newCircle, id: Date.now(), mosqueId: selectedMosque };
+      const updated = [...allCircles, circleData];
       
-      const studentData = {
-        ...newStudent,
-        id: Date.now(),
-        mosqueId: selectedMosque,
-        fullName: fullName,
-        currentSurah: newStudent.startSurah, // يربط مع المعلم لبداية الحفظ
-        points: 0
-      };
-      
-      const updated = [...allStudents, studentData];
-      localStorage.setItem('afaq_students', JSON.stringify(updated));
-      setStudents(updated.filter((s: any) => s.mosqueId === selectedMosque));
+      localStorage.setItem('afaq_circles', JSON.stringify(updated));
+      setCircles(updated.filter((c: any) => c.mosqueId === selectedMosque));
       setShowAddModal(false);
+      setNewCircle({ name: '', type: 'تلقين وحفظ', teacherName: '' });
     }
   };
 
   return (
-    <div className="space-y-6 text-right animate-fadeIn" dir="rtl">
-      <div className="flex justify-between items-center bg-white p-8 rounded-[32px] shadow-sm border border-emerald-50">
-        <h2 className="text-2xl font-black text-emerald-900">شؤون الطلاب</h2>
+    <div className="w-full p-4 md:p-8 space-y-6 text-right animate-fadeIn" dir="rtl">
+      {/* رأس الصفحة الممتد */}
+      <div className="flex flex-col md:flex-row justify-between items-center bg-white p-8 rounded-[32px] shadow-sm border border-emerald-50 gap-4">
+        <div>
+          <h2 className="text-2xl font-black text-emerald-900">إدارة الحلقات القرآنية</h2>
+          <p className="text-xs text-gray-400 font-bold mt-1">يمكنك إضافة وإدارة الحلقات التابعة للمسجد الحالي</p>
+        </div>
         <button 
           onClick={() => setShowAddModal(true)}
-          className="bg-emerald-900 text-white px-8 py-4 rounded-2xl font-bold hover:bg-emerald-800 transition-all shadow-lg"
+          className="w-full md:w-auto bg-emerald-900 text-white px-10 py-4 rounded-2xl font-black hover:bg-emerald-800 transition-all shadow-xl"
         >
-          + تسجيل طالب جديد
+          + إنشاء حلقة جديدة
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {students.map((student) => (
-          <div key={student.id} className="bg-white p-6 rounded-[32px] border border-emerald-50 shadow-sm flex items-center gap-5">
-            <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center text-3xl">👦</div>
-            <div>
-              <h3 className="font-black text-emerald-900 text-lg">{student.fullName}</h3>
-              <p className="text-xs text-gray-500 font-bold mt-1">
-                {student.circle} • يبدأ من: {student.startSurah}
-              </p>
+      {/* شبكة الحلقات */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {circles.map((circle) => (
+          <div key={circle.id} className="bg-white p-6 rounded-[32px] border border-emerald-50 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex items-center gap-4 mb-4">
+              <div className="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center text-3xl">🕌</div>
+              <div>
+                <h3 className="font-black text-emerald-900 text-lg">{circle.name}</h3>
+                <span className="bg-blue-100 text-blue-700 text-[10px] px-3 py-1 rounded-full font-black">{circle.type}</span>
+              </div>
+            </div>
+            <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100">
+              <p className="text-[10px] text-gray-400 font-black mb-1">المعلم المسؤول:</p>
+              <p className="text-sm font-bold text-emerald-800">{circle.teacherName || 'لم يتم التعيين'}</p>
             </div>
           </div>
         ))}
+        {circles.length === 0 && (
+          <div className="col-span-full py-20 text-center bg-white rounded-[40px] border-2 border-dashed border-gray-100">
+            <p className="text-gray-400 font-black">لا توجد حلقات مسجلة لهذا المسجد، ابدأ بإنشاء واحدة!</p>
+          </div>
+        )}
       </div>
 
+      {/* نافذة إضافة حلقة (Modal) - مصلحة تماماً */}
       {showAddModal && (
-        <div className="fixed inset-0 bg-[#0C1E14]/60 backdrop-blur-md z-[100] flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-[#FDFDFD] w-full max-w-4xl rounded-[40px] p-10 shadow-2xl my-8">
-            <h3 className="text-3xl font-black text-emerald-900 mb-8 border-b-2 border-emerald-100 pb-4">إضافة طالب جديد</h3>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[1000] flex items-center justify-center p-4">
+          <div className="bg-white w-full max-w-xl rounded-[40px] p-8 shadow-2xl animate-scaleIn">
+            <h3 className="text-2xl font-black text-emerald-900 mb-6 pb-4 border-b border-gray-100">إضافة حلقة للمسجد</h3>
             
-            {/* القسم الأول: المعلومات الأساسية */}
-            <div className="mb-8">
-              <h4 className="text-sm font-black text-amber-600 mb-4 bg-amber-50 inline-block px-4 py-1 rounded-full">المعلومات الأساسية</h4>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-                <div>
-                  <label className="text-xs font-bold text-gray-500">الاسم الأول</label>
-                  <input className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-100 mt-1" value={newStudent.firstName} onChange={e => setNewStudent({...newStudent, firstName: e.target.value})} />
-                </div>
-                <div>
-                  <label className="text-xs font-bold text-gray-500">اسم الأب</label>
-                  <input className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-100 mt-1" value={newStudent.fatherName} onChange={e => setNewStudent({...newStudent, fatherName: e.target.value})} />
-                </div>
-                <div>
-                  <label className="text-xs font-bold text-gray-500">اسم الجد</label>
-                  <input className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-100 mt-1" value={newStudent.grandFatherName} onChange={e => setNewStudent({...newStudent, grandFatherName: e.target.value})} />
-                </div>
-                <div>
-                  <label className="text-xs font-bold text-gray-500">اسم العائلة</label>
-                  <input className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-100 mt-1" value={newStudent.familyName} onChange={e => setNewStudent({...newStudent, familyName: e.target.value})} />
-                </div>
+            <div className="space-y-6">
+              <div>
+                <label className="block text-xs font-black text-gray-500 mb-2 mr-1">اسم الحلقة</label>
+                <input 
+                  className="w-full p-4 rounded-2xl bg-gray-50 border-none focus:ring-2 focus:ring-emerald-500 font-bold"
+                  placeholder="مثال: حلقة الإخلاص"
+                  value={newCircle.name} onChange={e => setNewCircle({...newCircle, name: e.target.value})}
+                />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div>
-                  <label className="text-xs font-bold text-gray-500">المرحلة الدراسية</label>
-                  <select className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-100 mt-1" value={newStudent.studyLevel} onChange={e => setNewStudent({...newStudent, studyLevel: e.target.value})}>
-                    <option>ابتدائي</option><option>متوسط</option><option>ثانوي</option><option>جامعي</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="text-xs font-bold text-gray-500">الحلقة المرشحة</label>
-                  <input className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-100 mt-1" placeholder="اسم الحلقة" value={newStudent.circle} onChange={e => setNewStudent({...newStudent, circle: e.target.value})} />
-                </div>
-                <div>
-                  <label className="text-xs font-bold text-gray-500">جوال الطالب</label>
-                  <input className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-100 mt-1 text-left" dir="ltr" placeholder="05x..." value={newStudent.studentPhone} onChange={e => setNewStudent({...newStudent, studentPhone: e.target.value})} />
-                </div>
-                <div>
-                  <label className="text-xs font-bold text-gray-500">جوال ولي الأمر</label>
-                  <input className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-100 mt-1 text-left" dir="ltr" placeholder="05x..." value={newStudent.parentPhone} onChange={e => setNewStudent({...newStudent, parentPhone: e.target.value})} />
-                </div>
+              <div>
+                <label className="block text-xs font-black text-gray-500 mb-2 mr-1">مسار الحفظ</label>
+                <select 
+                  className="w-full p-4 rounded-2xl bg-gray-50 border-none font-bold"
+                  value={newCircle.type} onChange={e => setNewCircle({...newCircle, type: e.target.value})}
+                >
+                  <option>تلقين وحفظ</option>
+                  <option>مراجعة وتثبيت</option>
+                  <option>إقراء وإجازة</option>
+                </select>
               </div>
-            </div>
 
-            {/* القسم الثاني: خطة الحفظ والمراجعة */}
-            <div className="mb-8 p-6 bg-slate-50 rounded-[24px] border border-slate-100">
-              <h4 className="text-sm font-black text-emerald-700 mb-4 bg-emerald-100 inline-block px-4 py-1 rounded-full">إعدادات الحفظ والتسميع</h4>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div>
-                  <label className="text-xs font-bold text-gray-600">يبدأ الحفظ من سورة:</label>
-                  <select className="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 mt-1" value={newStudent.startSurah} onChange={e => setNewStudent({...newStudent, startSurah: e.target.value})}>
-                    <option value="الناس">الناس (للمبتدئين)</option>
-                    <option value="النبأ">النبأ (جزء عم)</option>
-                    <option value="المجادلة">المجادلة (قد السمع)</option>
-                    <option value="البقرة">البقرة (للحفاظ)</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="text-xs font-bold text-gray-600">اتجاه الحفظ:</label>
-                  <select className="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 mt-1" value={newStudent.direction} onChange={e => setNewStudent({...newStudent, direction: e.target.value})}>
-                    <option>من الناس إلى الفاتحة (تصاعدي)</option>
-                    <option>من البقرة إلى الناس (تنازلي)</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="text-xs font-bold text-gray-600">الهدف اليومي (المقدار):</label>
-                  <select className="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 mt-1" value={newStudent.target} onChange={e => setNewStudent({...newStudent, target: e.target.value})}>
-                    <option>نصف وجه</option>
-                    <option>1 وجه</option>
-                    <option>2 وجه (مقطعين)</option>
-                  </select>
-                </div>
+              <div>
+                <label className="block text-xs font-black text-gray-500 mb-2 mr-1">اسم المعلم (اختياري)</label>
+                <input 
+                  className="w-full p-4 rounded-2xl bg-gray-50 border-none font-bold"
+                  placeholder="اسم المعلم المسؤول"
+                  value={newCircle.teacherName} onChange={e => setNewCircle({...newCircle, teacherName: e.target.value})}
+                />
               </div>
-            </div>
 
-            <div className="flex gap-4">
-              <button onClick={handleAddStudent} className="flex-1 py-5 bg-emerald-900 text-white rounded-2xl font-black text-lg shadow-xl hover:bg-emerald-800 transition-all">اعتماد وتسجيل الطالب</button>
-              <button onClick={() => setShowAddModal(false)} className="px-8 py-5 bg-red-50 text-red-500 rounded-2xl font-black hover:bg-red-100 transition-all">إلغاء</button>
+              <div className="flex gap-4 pt-4">
+                <button onClick={handleAddCircle} className="flex-1 py-4 bg-emerald-900 text-white rounded-2xl font-black shadow-lg">تأكيد الإنشاء</button>
+                <button onClick={() => setShowAddModal(false)} className="px-6 py-4 bg-gray-100 text-gray-400 rounded-2xl font-black">إلغاء</button>
+              </div>
             </div>
           </div>
         </div>
@@ -159,4 +116,4 @@ const ManagerStudents: React.FC<ManagerStudentsProps> = ({ selectedMosque }) => 
   );
 };
 
-export default ManagerStudents;
+export default ManagerCircles;
