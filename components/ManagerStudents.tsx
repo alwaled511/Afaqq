@@ -8,12 +8,24 @@ const ManagerStudents: React.FC<ManagerStudentsProps> = ({ selectedMosque }) => 
   const [students, setStudents] = useState<any[]>([]);
   const [showAddModal, setShowAddModal] = useState(false);
   
-  const [newStudent, setNewStudent] = useState({ 
-    firstName: '', fatherName: '', grandFatherName: '', familyName: '',
+  // الحالة الابتدائية للنموذج - خانة اسم واحدة وأهداف بالأسطر
+  const initialState = { 
+    tripleName: '', 
     circle: 'حلقة البراعم', studyLevel: 'ابتدائي',
     studentPhone: '', parentPhone: '',
-    startSurah: 'الناس', direction: 'الناس إلى الفاتحة', target: '1 وجه'
-  });
+    
+    hifzEnabled: true,
+    hifzFromSurah: 'الناس', hifzVerse: '1', hifzLinesTarget: '5', hifzGroup: 'المجموعة الأولى', hifzDirection: 'تصاعدي',
+    
+    tathbitEnabled: false,
+    tathbitStartSurah: 'الناس', tathbitVerse: '1', tathbitGroup: 'المجموعة الأولى',
+    
+    murajaahEnabled: false,
+    murajaahType: 'تلقائي', murajaahGroup: 'المجموعة الأولى', murajaahLinesTarget: '10', 
+    murajaahFromSurah: 'الفاتحة', murajaahToSurah: 'الناس'
+  };
+
+  const [newStudent, setNewStudent] = useState(initialState);
 
   useEffect(() => {
     const allStudents = JSON.parse(localStorage.getItem('afaq_students') || '[]');
@@ -21,43 +33,35 @@ const ManagerStudents: React.FC<ManagerStudentsProps> = ({ selectedMosque }) => 
   }, [selectedMosque]);
 
   const handleAddStudent = () => {
-    if (newStudent.firstName && newStudent.familyName) {
-      const fullName = `${newStudent.firstName} ${newStudent.fatherName} ${newStudent.grandFatherName} ${newStudent.familyName}`.trim();
+    if (newStudent.tripleName) {
       const allStudents = JSON.parse(localStorage.getItem('afaq_students') || '[]');
-      const studentData = { ...newStudent, id: Date.now(), mosqueId: selectedMosque, fullName: fullName, currentSurah: newStudent.startSurah, points: 0 };
+      const studentData = { ...newStudent, id: Date.now(), mosqueId: selectedMosque, fullName: newStudent.tripleName, points: 0 };
       const updated = [...allStudents, studentData];
       localStorage.setItem('afaq_students', JSON.stringify(updated));
       setStudents(updated.filter((s: any) => s.mosqueId === selectedMosque));
       setShowAddModal(false);
-      setNewStudent({ 
-        firstName: '', fatherName: '', grandFatherName: '', familyName: '',
-        circle: 'حلقة البراعم', studyLevel: 'ابتدائي',
-        studentPhone: '', parentPhone: '',
-        startSurah: 'الناس', direction: 'الناس إلى الفاتحة', target: '1 وجه'
-      });
+      setNewStudent(initialState);
     }
   };
 
   return (
     <div className="w-full min-h-screen p-4 md:p-8 space-y-6 text-right animate-fadeIn" dir="rtl">
-      {/* الهيدر العلوي */}
+      
+      {/* البار العلوي */}
       <div className="flex flex-col md:flex-row justify-between items-center bg-white p-6 rounded-[2rem] shadow-sm border border-emerald-50 gap-4">
         <div>
           <h2 className="text-2xl font-black text-emerald-900">شؤون الطلاب</h2>
-          <p className="text-xs text-gray-400 font-bold">إدارة بيانات طلاب المسجد المختار</p>
+          <p className="text-xs text-gray-400 font-bold">إدارة المسجلين في المسجد الحالي</p>
         </div>
-        <button 
-          onClick={() => setShowAddModal(true)}
-          className="w-full md:w-auto bg-emerald-900 text-white px-12 py-4 rounded-2xl font-black hover:bg-emerald-800 transition-all shadow-xl text-lg active:scale-95"
-        >
+        <button onClick={() => setShowAddModal(true)} className="w-full md:w-auto bg-emerald-900 text-white px-10 py-4 rounded-2xl font-black hover:bg-emerald-800 transition-all shadow-xl active:scale-95">
           + إضافة طالب جديد
         </button>
       </div>
 
-      {/* عرض الطلاب */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+      {/* قائمة الطلاب */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {students.map((student) => (
-          <div key={student.id} className="bg-white p-5 rounded-3xl border border-emerald-50 shadow-sm flex items-center gap-4 hover:border-emerald-200 transition-all">
+          <div key={student.id} className="bg-white p-5 rounded-3xl border border-emerald-50 shadow-sm flex items-center gap-4 hover:shadow-md transition-all">
             <div className="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center text-xl shadow-inner">👤</div>
             <div className="flex-1 overflow-hidden">
               <h3 className="font-black text-emerald-900 truncate text-sm">{student.fullName}</h3>
@@ -65,104 +69,119 @@ const ManagerStudents: React.FC<ManagerStudentsProps> = ({ selectedMosque }) => 
             </div>
           </div>
         ))}
-        {students.length === 0 && (
-          <div className="col-span-full py-12 text-center bg-white rounded-[2rem] border-2 border-dashed border-gray-100">
-            <p className="text-gray-400 font-black">لا يوجد طلاب مسجلين في هذا المسجد حتى الآن.</p>
-          </div>
-        )}
       </div>
 
-      {/* النافذة المنبثقة - التعديل الجذري هنا */}
+      {/* نافذة الإضافة المحدثة */}
       {showAddModal && (
-        <div className="fixed inset-0 z-[2000] overflow-y-auto bg-black/60 backdrop-blur-sm">
-          {/* هذه الحاوية تضمن أن النافذة في المنتصف وأنك تقدر تنزل بالماوس براحتك */}
-          <div className="flex min-h-screen items-center justify-center p-4 py-12">
-            
-            <div className="w-full max-w-5xl rounded-[32px] bg-white shadow-2xl overflow-hidden animate-scaleIn">
+        <div className="fixed inset-0 z-[2000] overflow-y-auto bg-black/70 backdrop-blur-sm">
+          <div className="flex min-h-screen items-center justify-center p-4 py-10">
+            <div className="w-full max-w-5xl rounded-[40px] bg-white shadow-2xl overflow-hidden animate-scaleIn">
               
-              {/* رأس النافذة */}
-              <div className="bg-white p-6 border-b border-gray-100 flex justify-between items-center">
+              {/* العنوان */}
+              <div className="p-6 border-b flex justify-between items-center bg-gray-50/50">
                 <h3 className="text-xl font-black text-emerald-900">تسجيل طالب جديد</h3>
-                <button onClick={() => setShowAddModal(false)} className="text-gray-400 hover:text-red-500 hover:bg-red-50 w-10 h-10 rounded-full flex items-center justify-center transition-colors text-2xl font-black">&times;</button>
+                <button onClick={() => setShowAddModal(false)} className="text-gray-400 hover:text-red-500 text-3xl font-light">&times;</button>
               </div>
 
-              {/* محتوى النموذج */}
-              <div className="p-6 md:p-8 space-y-8">
+              {/* المحتوى */}
+              <div className="p-6 md:p-10 space-y-12">
                 
-                {/* قسم الاسم الرباعي */}
-                <div className="space-y-4">
+                {/* القسم الأول: الهوية */}
+                <div className="space-y-6">
                   <div className="flex items-center gap-2 border-r-4 border-emerald-500 pr-3">
-                    <span className="text-emerald-900 font-black">المعلومات الأساسية</span>
+                    <span className="text-emerald-900 font-black">بيانات الطالب</span>
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-                    {[
-                      { label: 'الاسم الأول', key: 'firstName' },
-                      { label: 'اسم الأب', key: 'fatherName' },
-                      { label: 'اسم الجد', key: 'grandFatherName' },
-                      { label: 'اسم العائلة', key: 'familyName' }
-                    ].map((field) => (
-                      <div key={field.key} className="space-y-1">
-                        <label className="text-[11px] font-black text-gray-500 mr-1">{field.label}</label>
-                        <input 
-                          className="w-full p-4 rounded-xl bg-gray-50 border border-gray-100 focus:bg-white focus:ring-2 focus:ring-emerald-500 outline-none transition-all font-bold text-emerald-900"
-                          value={(newStudent as any)[field.key]}
-                          onChange={e => setNewStudent({...newStudent, [field.key]: e.target.value})}
-                        />
+                  <div className="grid grid-cols-1 gap-6">
+                    <div className="space-y-1">
+                      <label className="text-xs font-black text-gray-400 mr-1">الاسم الثلاثي</label>
+                      <input 
+                        className="w-full p-4 rounded-2xl bg-gray-50 border-none font-bold text-emerald-900 focus:ring-2 focus:ring-emerald-500 outline-none"
+                        placeholder="أدخل الاسم الثلاثي للطالب..."
+                        value={newStudent.tripleName} 
+                        onChange={e => setNewStudent({...newStudent, tripleName: e.target.value})} 
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div>
+                      <label className="text-[11px] font-black text-gray-400 block mb-1">المرحلة الدراسية</label>
+                      <select className="w-full p-4 rounded-xl bg-gray-50 border-none font-bold" value={newStudent.studyLevel} onChange={e => setNewStudent({...newStudent, studyLevel: e.target.value})}>
+                        <option>ابتدائي</option><option>متوسط</option><option>ثانوي</option><option>جامعي</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-[11px] font-black text-gray-400 block mb-1">جوال الطالب</label>
+                      <input className="w-full p-4 rounded-xl bg-gray-50 border-none font-bold text-left" dir="ltr" placeholder="05xxxxxxxx" value={newStudent.studentPhone} onChange={e => setNewStudent({...newStudent, studentPhone: e.target.value})} />
+                    </div>
+                    <div>
+                      <label className="text-[11px] font-black text-gray-400 block mb-1">جوال ولي الأمر</label>
+                      <input className="w-full p-4 rounded-xl bg-gray-50 border-none font-bold text-left" dir="ltr" placeholder="05xxxxxxxx" value={newStudent.parentPhone} onChange={e => setNewStudent({...newStudent, parentPhone: e.target.value})} />
+                    </div>
+                    <div>
+                      <label className="text-[11px] font-black text-gray-400 block mb-1">تحديد الحلقة</label>
+                      <select className="w-full p-4 rounded-xl bg-gray-50 border-none font-bold" value={newStudent.circle} onChange={e => setNewStudent({...newStudent, circle: e.target.value})}>
+                        <option>حلقة البراعم</option><option>حلقة الشباب</option><option>حلقة الحفاظ</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                {/* القسم الثاني: الخطة التعليمية (أسطر) */}
+                <div className="space-y-6">
+                  <div className="flex items-center gap-2 border-r-4 border-emerald-500 pr-3">
+                    <span className="text-emerald-900 font-black">الخطة التعليمية اليومية</span>
+                  </div>
+
+                  {/* الحفظ */}
+                  <div className="bg-emerald-50/40 p-6 rounded-3xl border border-emerald-100 space-y-4 shadow-sm">
+                    <div className="flex items-center gap-2 font-black text-emerald-800">
+                      <input type="checkbox" checked={newStudent.hifzEnabled} onChange={e => setNewStudent({...newStudent, hifzEnabled: e.target.checked})} className="w-5 h-5 accent-emerald-600" />
+                      <span>خطة الحفظ الجديد</span>
+                    </div>
+                    <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                      <div><label className="text-[10px] font-bold text-gray-500">من سورة</label><input className="w-full p-3 rounded-lg bg-white font-bold text-sm" value={newStudent.hifzFromSurah} onChange={e => setNewStudent({...newStudent, hifzFromSurah: e.target.value})} /></div>
+                      <div><label className="text-[10px] font-bold text-gray-500">آية رقم</label><input className="w-full p-3 rounded-lg bg-white font-bold text-sm" value={newStudent.hifzVerse} onChange={e => setNewStudent({...newStudent, hifzVerse: e.target.value})} /></div>
+                      <div><label className="text-[10px] font-bold text-gray-500">الهدف (عدد الأسطر)</label><input type="number" className="w-full p-3 rounded-lg bg-white font-bold text-sm" value={newStudent.hifzLinesTarget} onChange={e => setNewStudent({...newStudent, hifzLinesTarget: e.target.value})} /></div>
+                      <div><label className="text-[10px] font-bold text-gray-500">المجموعة</label><select className="w-full p-3 rounded-lg bg-white font-bold text-sm" value={newStudent.hifzGroup} onChange={e => setNewStudent({...newStudent, hifzGroup: e.target.value})}><option>المجموعة الأولى</option></select></div>
+                      <div><label className="text-[10px] font-bold text-gray-500">الاتجاه</label><select className="w-full p-3 rounded-lg bg-white font-bold text-sm" value={newStudent.hifzDirection} onChange={e => setNewStudent({...newStudent, hifzDirection: e.target.value})}><option>تصاعدي</option><option>تنازلي</option></select></div>
+                    </div>
+                  </div>
+
+                  {/* التثبيت والمراجعة بنفس التنسيق... */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* التثبيت */}
+                    <div className="bg-blue-50/40 p-6 rounded-3xl border border-blue-100 space-y-4 shadow-sm">
+                      <div className="flex items-center gap-2 font-black text-blue-800">
+                        <input type="checkbox" checked={newStudent.tathbitEnabled} onChange={e => setNewStudent({...newStudent, tathbitEnabled: e.target.checked})} className="w-5 h-5 accent-blue-600" />
+                        <span>التثبيت</span>
                       </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* قسم التواصل */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="space-y-1">
-                    <label className="text-[11px] font-black text-gray-500 mr-1">المرحلة الدراسية</label>
-                    <select className="w-full p-4 rounded-xl bg-gray-50 border border-gray-100 font-bold outline-none" value={newStudent.studyLevel} onChange={e => setNewStudent({...newStudent, studyLevel: e.target.value})}>
-                      <option>ابتدائي</option><option>متوسط</option><option>ثانوي</option><option>جامعي</option>
-                    </select>
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-[11px] font-black text-gray-500 mr-1">جوال الطالب</label>
-                    <input className="w-full p-4 rounded-xl bg-gray-50 border border-gray-100 font-bold text-left outline-none" dir="ltr" placeholder="05xxxxxxxx" value={newStudent.studentPhone} onChange={e => setNewStudent({...newStudent, studentPhone: e.target.value})} />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-[11px] font-black text-gray-500 mr-1">جوال ولي الأمر</label>
-                    <input className="w-full p-4 rounded-xl bg-gray-50 border border-gray-100 font-bold text-left outline-none" dir="ltr" placeholder="05xxxxxxxx" value={newStudent.parentPhone} onChange={e => setNewStudent({...newStudent, parentPhone: e.target.value})} />
-                  </div>
-                </div>
-
-                {/* قسم خطة الحفظ */}
-                <div className="bg-emerald-50/50 p-6 rounded-[1.5rem] border border-emerald-100 space-y-6">
-                  <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 bg-emerald-500 rounded-full"></span>
-                    <span className="text-emerald-900 font-black text-sm">خطة الحفظ والهدف اليومي</span>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-black text-emerald-600 mr-1">بداية الحفظ من سورة</label>
-                      <input className="w-full p-4 rounded-xl bg-white border border-emerald-100 outline-none font-bold shadow-sm" placeholder="مثال: الناس" value={newStudent.startSurah} onChange={e => setNewStudent({...newStudent, startSurah: e.target.value})} />
+                      <div className="grid grid-cols-3 gap-2">
+                        <div><label className="text-[10px] font-bold text-gray-500 block">من سورة</label><input className="w-full p-3 rounded-lg bg-white font-bold text-xs" value={newStudent.tathbitStartSurah} onChange={e => setNewStudent({...newStudent, tathbitStartSurah: e.target.value})} /></div>
+                        <div><label className="text-[10px] font-bold text-gray-500 block">آية رقم</label><input className="w-full p-3 rounded-lg bg-white font-bold text-xs" value={newStudent.tathbitVerse} onChange={e => setNewStudent({...newStudent, tathbitVerse: e.target.value})} /></div>
+                        <div><label className="text-[10px] font-bold text-gray-500 block">المجموعة</label><select className="w-full p-3 rounded-lg bg-white font-bold text-xs" value={newStudent.tathbitGroup} onChange={e => setNewStudent({...newStudent, tathbitGroup: e.target.value})}><option>الأولى</option></select></div>
+                      </div>
                     </div>
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-black text-emerald-600 mr-1">اتجاه الحفظ</label>
-                      <select className="w-full p-4 rounded-xl bg-white border border-emerald-100 outline-none font-bold shadow-sm" value={newStudent.direction} onChange={e => setNewStudent({...newStudent, direction: e.target.value})}>
-                        <option>تصاعدي (من الناس إلى الفاتحة)</option>
-                        <option>تنازلي (من البقرة إلى الناس)</option>
-                      </select>
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-black text-emerald-600 mr-1">الهدف اليومي</label>
-                      <select className="w-full p-4 rounded-xl bg-white border border-emerald-100 outline-none font-bold shadow-sm" value={newStudent.target} onChange={e => setNewStudent({...newStudent, target: e.target.value})}>
-                        <option>وجه واحد</option><option>وجهين</option><option>نصف وجه</option>
-                      </select>
+
+                    {/* المراجعة */}
+                    <div className="bg-amber-50/40 p-6 rounded-3xl border border-amber-100 space-y-4 shadow-sm">
+                      <div className="flex items-center gap-2 font-black text-amber-800">
+                        <input type="checkbox" checked={newStudent.murajaahEnabled} onChange={e => setNewStudent({...newStudent, murajaahEnabled: e.target.checked})} className="w-5 h-5 accent-amber-600" />
+                        <span>المراجعة</span>
+                      </div>
+                      <div className="grid grid-cols-3 gap-2">
+                        <div><label className="text-[10px] font-bold text-gray-500 block">الهدف (أسطر)</label><input type="number" className="w-full p-3 rounded-lg bg-white font-bold text-xs" value={newStudent.murajaahLinesTarget} onChange={e => setNewStudent({...newStudent, murajaahLinesTarget: e.target.value})} /></div>
+                        <div><label className="text-[10px] font-bold text-gray-500 block">من سورة</label><input className="w-full p-3 rounded-lg bg-white font-bold text-xs" value={newStudent.murajaahFromSurah} onChange={e => setNewStudent({...newStudent, murajaahFromSurah: e.target.value})} /></div>
+                        <div><label className="text-[10px] font-bold text-gray-500 block">المجموعة</label><select className="w-full p-3 rounded-lg bg-white font-bold text-xs" value={newStudent.murajaahGroup} onChange={e => setNewStudent({...newStudent, murajaahGroup: e.target.value})}><option>الأولى</option></select></div>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* أزرار الحفظ */}
-              <div className="bg-gray-50 p-6 border-t border-gray-100 flex gap-4">
-                <button onClick={handleAddStudent} className="flex-1 py-4 bg-emerald-900 text-white rounded-xl font-black text-lg shadow-md hover:bg-emerald-800 transition-all active:scale-95">حفظ واعتماد الطالب</button>
-                <button onClick={() => setShowAddModal(false)} className="px-8 py-4 bg-white border border-gray-200 text-gray-500 rounded-xl font-black hover:bg-gray-100 transition-all">إلغاء</button>
+              {/* أزرار الإجراءات */}
+              <div className="p-6 bg-gray-50 border-t flex gap-4">
+                <button onClick={handleAddStudent} className="flex-1 py-5 bg-emerald-900 text-white rounded-2xl font-black text-xl hover:bg-emerald-800 transition-all shadow-lg active:scale-95">حفظ بيانات الطالب</button>
+                <button onClick={() => setShowAddModal(false)} className="px-10 py-5 bg-white border border-gray-200 text-gray-400 rounded-2xl font-black hover:bg-gray-100 transition-all">إلغاء</button>
               </div>
 
             </div>
