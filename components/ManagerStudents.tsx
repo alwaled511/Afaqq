@@ -21,9 +21,9 @@ const ManagerStudents: React.FC<ManagerStudentsProps> = ({ selectedMosque }) => 
     studentPhone: '', 
     parentPhone: '',
     hifzEnabled: true,
-    hifzFromSurah: 'النبأ', 
+    hifzFromSurah: 'النبأ',
     hifzVerse: '1', 
-    hifzLinesTarget: '10', 
+    hifzLinesTarget: '33', 
     hifzDirection: 'تصاعدي',
     tathbitEnabled: false,
     tathbitStartSurah: 'الناس', 
@@ -39,6 +39,9 @@ const ManagerStudents: React.FC<ManagerStudentsProps> = ({ selectedMosque }) => 
     const allStudents = JSON.parse(localStorage.getItem('afaq_students') || '[]');
     setStudents(allStudents.filter((s: any) => s.mosqueId === selectedMosque));
   }, [selectedMosque]);
+
+  // استخراج أسماء الحلقات الفريدة المسجلة تلقائياً
+  const existingCircles = Array.from(new Set(students.map(s => s.circle).filter(Boolean)));
 
   const handleSaveStudent = () => {
     if (newStudent.tripleName) {
@@ -103,20 +106,33 @@ const ManagerStudents: React.FC<ManagerStudentsProps> = ({ selectedMosque }) => 
       {showAddModal && (
         <div className="fixed inset-0 z-[2000] overflow-y-auto bg-black/70 backdrop-blur-sm">
           <div className="flex min-h-screen items-center justify-center p-4 py-10">
-            <div className="w-full max-w-5xl rounded-[40px] bg-white shadow-2xl overflow-hidden animate-scaleIn">
+            <div className="w-full max-w-5xl rounded-[40px] bg-white shadow-2xl overflow-hidden">
               <div className="p-6 border-b flex justify-between items-center bg-gray-50/50">
                 <h3 className="text-xl font-black text-emerald-900">{editingStudentId ? 'تعديل طالب' : 'نموذج تسجيل طالب'}</h3>
                 <button onClick={() => setShowAddModal(false)} className="text-gray-400 text-3xl font-light hover:text-red-500">&times;</button>
               </div>
 
               <div className="p-6 md:p-10 space-y-10">
-                {/* الجزء الأول: المعلومات الشخصية */}
                 <div className="space-y-6">
                   <h4 className="text-emerald-900 font-black border-r-4 border-emerald-500 pr-3">المعلومات الشخصية</h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <input className="w-full p-4 rounded-2xl bg-gray-50 border-none font-bold text-emerald-900 outline-none focus:ring-2 focus:ring-emerald-500" placeholder="الاسم الثلاثي" value={newStudent.tripleName} onChange={e => setNewStudent({...newStudent, tripleName: e.target.value})} />
-                    <input className="w-full p-4 rounded-2xl bg-gray-50 border-none font-bold outline-none focus:ring-2 focus:ring-emerald-500" placeholder="اسم الحلقة" value={newStudent.circle} onChange={e => setNewStudent({...newStudent, circle: e.target.value})} />
+                    <input className="w-full p-4 rounded-2xl bg-gray-50 border-none font-bold text-emerald-900 outline-none" placeholder="الاسم الثلاثي" value={newStudent.tripleName} onChange={e => setNewStudent({...newStudent, tripleName: e.target.value})} />
+                    
+                    {/* هنا التعديل: أضفنا list="circles-list" ليكون تلقائياً */}
+                    <div className="w-full">
+                      <input 
+                        list="circles-list"
+                        className="w-full p-4 rounded-2xl bg-gray-50 border-none font-bold outline-none focus:ring-2 focus:ring-emerald-500" 
+                        placeholder="اسم الحلقة" 
+                        value={newStudent.circle} 
+                        onChange={e => setNewStudent({...newStudent, circle: e.target.value})} 
+                      />
+                      <datalist id="circles-list">
+                        {existingCircles.map(c => <option key={c} value={c} />)}
+                      </datalist>
+                    </div>
                   </div>
+                  {/* ... باقي الحقول تظل كما هي في كودك تماماً ... */}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <input className="p-4 rounded-xl bg-gray-50 font-bold outline-none" placeholder="المرحلة الدراسية" value={newStudent.studyLevel} onChange={e => setNewStudent({...newStudent, studyLevel: e.target.value})} />
                     <input className="p-4 rounded-xl bg-gray-50 font-bold text-left outline-none" dir="ltr" placeholder="جوال الطالب" value={newStudent.studentPhone} onChange={e => setNewStudent({...newStudent, studentPhone: e.target.value})} />
@@ -124,7 +140,6 @@ const ManagerStudents: React.FC<ManagerStudentsProps> = ({ selectedMosque }) => 
                   </div>
                 </div>
 
-                {/* الجزء الثاني: خطة الحفظ (نفس كودك الأصلي تماماً) */}
                 <div className="space-y-6">
                   <h4 className="text-emerald-900 font-black border-r-4 border-emerald-500 pr-3">خطة الحفظ والهدف</h4>
                   <div className="bg-emerald-50/40 p-6 rounded-3xl border border-emerald-100 space-y-4">
@@ -141,8 +156,7 @@ const ManagerStudents: React.FC<ManagerStudentsProps> = ({ selectedMosque }) => 
                       <select className="w-full p-3 rounded-lg bg-white font-bold outline-none shadow-sm" value={newStudent.hifzDirection} onChange={e => setNewStudent({...newStudent, hifzDirection: e.target.value})}><option>تصاعدي</option><option>تنازلي</option></select>
                     </div>
                   </div>
-
-                  {/* الجزء الثالث: التثبيت والمراجعة */}
+                  {/* ... التثبيت والمراجعة ... */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="bg-blue-50/40 p-6 rounded-3xl border border-blue-100 space-y-4 shadow-sm">
                       <div className="flex items-center gap-2 font-black text-blue-800">
@@ -150,21 +164,20 @@ const ManagerStudents: React.FC<ManagerStudentsProps> = ({ selectedMosque }) => 
                         <span>خطة التثبيت</span>
                       </div>
                       <div className="grid grid-cols-2 gap-3">
-                        <select className="w-full p-3 rounded-lg bg-white font-bold text-xs outline-none" value={newStudent.tathbitStartSurah} onChange={e => setNewStudent({...newStudent, tathbitStartSurah: e.target.value})}>
+                        <select className="w-full p-3 rounded-lg bg-white font-bold text-xs" value={newStudent.tathbitStartSurah} onChange={e => setNewStudent({...newStudent, tathbitStartSurah: e.target.value})}>
                           {quranSurahs.map(s => <option key={s} value={s}>{s}</option>)}
                         </select>
-                        <input type="number" className="w-full p-3 rounded-lg bg-white font-bold text-xs outline-none" value={newStudent.tathbitVerse} onChange={e => setNewStudent({...newStudent, tathbitVerse: e.target.value})} />
+                        <input type="number" className="w-full p-3 rounded-lg bg-white font-bold text-xs" value={newStudent.tathbitVerse} onChange={e => setNewStudent({...newStudent, tathbitVerse: e.target.value})} />
                       </div>
                     </div>
-
                     <div className="bg-amber-50/40 p-6 rounded-3xl border border-amber-100 space-y-4 shadow-sm">
                       <div className="flex items-center gap-2 font-black text-amber-800">
                         <input type="checkbox" checked={newStudent.murajaahEnabled} onChange={e => setNewStudent({...newStudent, murajaahEnabled: e.target.checked})} className="w-5 h-5 accent-amber-600" />
                         <span>خطة المراجعة</span>
                       </div>
                       <div className="grid grid-cols-2 gap-3">
-                        <input type="number" className="w-full p-3 rounded-lg bg-white font-bold text-xs outline-none" value={newStudent.murajaahLinesTarget} onChange={e => setNewStudent({...newStudent, murajaahLinesTarget: e.target.value})} />
-                        <select className="w-full p-3 rounded-lg bg-white font-bold text-xs outline-none" value={newStudent.murajaahFromSurah} onChange={e => setNewStudent({...newStudent, murajaahFromSurah: e.target.value})}>
+                        <input type="number" className="w-full p-3 rounded-lg bg-white font-bold text-xs" value={newStudent.murajaahLinesTarget} onChange={e => setNewStudent({...newStudent, murajaahLinesTarget: e.target.value})} />
+                        <select className="w-full p-3 rounded-lg bg-white font-bold text-xs" value={newStudent.murajaahFromSurah} onChange={e => setNewStudent({...newStudent, murajaahFromSurah: e.target.value})}>
                           {quranSurahs.map(s => <option key={s} value={s}>{s}</option>)}
                         </select>
                       </div>
@@ -174,8 +187,8 @@ const ManagerStudents: React.FC<ManagerStudentsProps> = ({ selectedMosque }) => 
               </div>
 
               <div className="p-6 bg-gray-50 border-t flex gap-4">
-                <button onClick={handleSaveStudent} className="flex-1 py-5 bg-emerald-900 text-white rounded-2xl font-black text-xl hover:bg-emerald-800 transition-all">
-                  {editingStudentId ? 'تعديل وحفظ الطالب' : 'اعتماد وحفظ الطالب'}
+                <button onClick={handleSaveStudent} className="flex-1 py-5 bg-emerald-900 text-white rounded-2xl font-black text-xl active:scale-95 transition-all">
+                  {editingStudentId ? 'حفظ التعديلات' : 'اعتماد وحفظ الطالب'}
                 </button>
                 <button onClick={() => setShowAddModal(false)} className="px-10 py-5 bg-white border border-gray-200 text-gray-400 rounded-2xl font-black">إلغاء</button>
               </div>
